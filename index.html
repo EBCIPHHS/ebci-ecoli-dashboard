@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>EBCI Water Quality — E. coli (Rivers & Streams)</title>
+<link rel="stylesheet" href="css/styles.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="js/config.js"></script>
+</head><body>
+<header><div class="header-inner">
+  <div class="header-logos">
+    <img src="assets/phhs_logo.png" alt="EBCI PHHS logo" class="logo-img"/>
+    <img src="assets/water_logo.png" alt="EBCI Water Quality logo" class="logo-img"/>
+  </div>
+  <div class="header-title" style="margin-left:10px">
+    <h1>EBCI Water Quality — E. coli (Rivers & Streams)</h1>
+    <small class="muted">Public transparency dashboard • Last updated: 2025-08-12</small>
+  </div>
+</div></header>
+
+<div class="container">
+  <div class="kpi">
+    <div class="item"><div class="label">Sites monitored</div><div class="value" id="kpi-total">—</div></div>
+    <div class="item"><div class="label">Advisories</div><div class="value" id="kpi-adv">—</div></div>
+    <div class="item"><div class="label">Cautions</div><div class="value" id="kpi-cau">—</div></div>
+  </div>
+
+  <div class="legend" style="margin:10px 0 6px 0">
+    <span class="badge ok">Good (below EPA STV and GM)</span>
+    <span class="badge caution">Caution (235–409 CFU/100 mL)</span>
+    <span class="badge advisory">Advisory (≥410 CFU/100 mL or GM ≥126)</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Map of Sampling Sites</h2>
+      <div id="map" class="map"></div>
+      <p id="map-note" class="note"></p>
+      <p class="note">Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater E. coli (GM 126; STV 410 CFU/100 mL). Learn more: https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods</p>
+    </div>
+    <div class="card">
+      <h2>Latest Results</h2>
+      <table id="results" class="table">
+        <thead><tr><th>Site</th><th>Waterbody</th><th>Date</th><th>E. coli (CFU/100 mL)</th><th>30‑day GM</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="note">“GM” = geometric mean of samples in the last 30 days for the site. Non‑detects (“&lt;”) are treated as half the detection limit; “&gt;” are shown as reported.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px"><h2>Latest E. coli by Site (Bar Chart)</h2><div id="bar" style="height:450px"></div></div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>About the Data</h2>
+    <p>EBCI PHHS monitors <i>Escherichia coli</i> (E. coli) as an indicator of fecal contamination in rivers and streams used for recreation. Results are reported as colony‑forming units per 100 mL (CFU/100 mL) or most probable number (MPN/100 mL) depending on the method.</p>
+    <ul>
+      <li><b>How to interpret results</b> — The EPA’s 2012 Recreational Water Quality Criteria use two benchmarks for freshwater E. coli: a <b>30‑day geometric mean ≤ 126</b> CFU/100 mL and a <b>single‑sample Statistical Threshold Value ≤ 410</b> CFU/100 mL. We flag “<b>Advisory</b>” when the latest value is ≥ 410 or the 30‑day GM ≥ 126. A “<b>Caution</b>” band (235–409) is shown for added context.</li>
+      <li><b>Sampling & methods</b> — Grab samples are collected using sterile bottles at wadeable locations and analyzed using EPA‑approved methods (e.g., Colilert‑18/Quanti‑Tray or EPA Method 1603). Results typically represent conditions at the time of sampling and can change rapidly after rainfall.</li>
+      <li><b>Public health guidance (CDC)</b> — Avoid swallowing water; keep children from putting hands or objects in their mouths; wash hands or use sanitizer before eating; avoid water for 24–48 hours after heavy rain; stay out if you’re sick with diarrhea; and keep cuts or wounds out of the water. Learn more: https://www.cdc.gov/healthy-swimming/prevention/index.html and https://www.cdc.gov/ecoli/prevention.html</li>
+      <li><b>Data notes</b> — Non‑detects (“&lt;”) are treated as half the detection limit for geometric means. Values above the upper reading range (“&gt;”) are displayed as reported. Locations without coordinates will appear in the table and chart but not on the map.</li>
+    </ul>
+  </div>
+</div>
+<footer<div class="container">Questions? Contact EBCI PHHS • Water Quality Team • water@ebci-nsn.gov</div></footer>
+<script src="js/app.js"></script>
+</body></html>
