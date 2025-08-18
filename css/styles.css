@@ -1,22 +1,63 @@
+:root{
+  --primary:#22577A; --accent:#38A3A5; --accent2:#57CC99; --accent3:#80ED99; --accent4:#C7F9CC;
+  --muted:#475569; --bg:#f8fafc;
+}
 
-:root{--primary:#22577A;--accent:#38A3A5;--accent2:#57CC99;--accent3:#80ED99;--accent4:#C7F9CC;--muted:#475569;--bg:#f8fafc}
-*{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:var(--bg);color:#0f172a}
-header{background:var(--primary);color:white;padding:10px 0}
-.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px}
-.header-logos{display:flex;align-items:center;gap:12px}
-.header-title{display:flex;flex-direction:column}.header-title h1{margin:0;font-size:22px;font-weight:700}
-small.muted{color:#e5e7eb}.container{max-width:1200px;margin:0 auto;padding:14px}
-.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.card{background:white;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:14px}
-h2{margin:0 0 8px 0;font-size:18px}.legend{display:flex;gap:10px;flex-wrap:wrap}
-.badge{padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(0,0,0,.08)}
-.badge.ok{background:#C7F9CC;color:#094d2a;border-color:#a7f3d0}.badge.caution{background:#fff7ed;color:#7a3e00;border-color:#fed7aa}
-.badge.advisory{background:#fee2e2;color:#7f1d1d;border-color:#fecaca}footer{padding:14px 20px;color:var(--muted);font-size:13px}
-.table{width:100%;border-collapse:separate;border-spacing:0}.table thead th{background:#e5f2f7;color:#0b3551;text-align:left;padding:10px 12px;font-size:13px;border-bottom:2px solid #bdd7e7}
-.table tbody tr{background:white;border-bottom:1px solid #e5e7eb}.table tbody td{padding:10px 12px}.table tbody tr:hover{background:#f9fafb}
-.kpi{display:flex;gap:16px;flex-wrap:wrap}.kpi .item{background:white;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}.kpi .value{font-weight:700;font-size:20px}
-.map{height:520px;border-radius:14px;overflow:hidden}.note{font-size:12px;color:#475569}.logo-img{height:60px;width:auto;display:block}
+/* Base */
+*{ box-sizing:border-box; }
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  margin:0; background:var(--bg); color:#0f172a;
+}
 
-/* Status badge colors */
-.badge.good{background:#80ED99;color:#064e3b;border-color:#34d399}
-.badge.caution{background:#FFF3E0;color:#7a3e00;border-color:#F6C77A}
-.badge.advisory{background:#FDE2E2;color:#7f1d1d;border-color:#F8B4B4}
+/* Header */
+header{ background:var(--primary); color:white; padding:10px 0; }
+.header-inner{ max-width:1300px; margin:0 auto; display:flex; align-items:center; gap:12px; padding:8px 14px; }
+.header-logos{ display:flex; align-items:center; gap:12px; }
+.logo-img{ height:60px; width:auto; display:block; }
+.header-title{ display:flex; flex-direction:column; }
+.header-title h1{ margin:0; font-size:22px; font-weight:700; }
+small.muted{ color:#e5e7eb; }
+
+/* Layout */
+.container{ max-width:1300px; margin:0 auto; padding:16px; }
+.grid{ display:grid; grid-template-columns:1.2fr .8fr; gap:16px; }
+.card{ background:white; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); padding:14px; }
+h2{ margin:0 0 8px 0; font-size:18px; }
+
+/* Legend badges */
+.legend{ display:flex; gap:10px; flex-wrap:wrap; }
+.badge{ padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(0,0,0,.08); }
+.badge.good{ background:#C7F9CC; color:#094d2a; border-color:#a7f3d0; }
+.badge.caution{ background:#fff7ed; color:#7a3e00; border-color:#fed7aa; }
+.badge.advisory{ background:#fee2e2; color:#7f1d1d; border-color:#fecaca; }
+
+/* PowerPoint Slide Style Table (Simple Rows) */
+.table{ width:100%; border-collapse:separate; border-spacing:0; }
+.table thead th{
+  background:#e5f2f7; color:#0b3551; text-align:left;
+  padding:10px 12px; font-size:13px; border-bottom:2px solid #bdd7e7;
+}
+.table tbody tr{ background:white; border-bottom:1px solid #e5e7eb; }
+.table tbody td{ padding:10px 12px; }
+.table tbody tr:hover{ background:#f9fafb; }
+
+/* KPIs */
+.kpi{ display:flex; gap:16px; flex-wrap:wrap; }
+.kpi .item{ background:white; border-radius:12px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.kpi .value{ font-weight:700; font-size:20px; }
+
+/* Map */
+.map{ height:560px; border-radius:14px; overflow:hidden; }
+
+/* Text & links */
+.note{ font-size:12px; color:var(--muted); }
+a{ color:var(--primary); }
+
+/* Resources list: ensure long URLs wrap on small screens */
+.resource-list a{ overflow-wrap:anywhere; word-break:break-word; }
+
+/* Filters */
+.filter-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.filter-row label{ font-weight:600; }
+select{ padding:6px 8px; border:1px solid #cbd5e1; border-radius:8px; background:white; }
