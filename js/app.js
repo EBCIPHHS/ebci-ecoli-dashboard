@@ -5,19 +5,52 @@ function gm(values){
   const s = v.reduce((a,x)=>a+Math.log(x),0);
   return Math.exp(s/v.length);
 }
+
+// Robust CSV date parser: handles ISO (YYYY-MM-DD[ HH:mm[:ss]]), US (M/D/YYYY [h:mm[:ss] AM/PM]),
+// and Excel serial numbers.
+function parseSampleDate(x){
+  if(x===null || x===undefined || x==='') return null;
+  if (typeof x === 'number' && isFinite(x)) {
+    // Excel serial date -> JS Date
+    const ms = Math.round((x - 25569) * 86400 * 1000);
+    return new Date(ms);
+  }
+  const s = String(x).trim();
+  let m;
+  // ISO-like
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if(m){
+    const Y=+m[1], M=+m[2]-1, D=+m[3], h=+(m[4]||0), mi=+(m[5]||0), se=+(m[6]||0);
+    return new Date(Y,M,D,h,mi,se);
+  }
+  // US M/D/YYYY with optional time & AM/PM
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i);
+  if(m){
+    let M=+m[1], D=+m[2], Y=+m[3]; if(Y<100) Y=2000+Y;
+    let h=+(m[4]||0), mi=+(m[5]||0), se=+(m[6]||0);
+    const ap = (m[7]||'').toUpperCase();
+    if(ap==='PM' && h<12) h+=12;
+    if(ap==='AM' && h===12) h=0;
+    return new Date(Y,M-1,D,h,mi,se);
+  }
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
 function statusFor(val, gm30){
   const T = window.EBCI_CONFIG.thresholds;
   if(val>=T.stv || (gm30!=null && gm30>T.gm)) return {code:'Advisory', color:window.EBCI_CONFIG.palette.advisory};
   if(val>=T.legacy_single_sample && val<T.stv) return {code:'Caution', color:window.EBCI_CONFIG.palette.caution};
   return {code:'Good', color:window.EBCI_CONFIG.palette.ok};
 }
+
 async function main(){
   const csvUrl = `data/ecoli_samples.csv?v=${Date.now()}`;
   const text = await (await fetch(csvUrl, {cache:'no-store'})).text();
   const rows = Papa.parse(text, {header:true, dynamicTyping:true}).data.filter(r=>r.site_id);
 
   rows.forEach(r=>{
-    r.sample_datetime_local = new Date(String(r.sample_datetime_local).replace(' ','T'));
+    r.sample_datetime_local = parseSampleDate(r.sample_datetime_local);
     r.ecoli_cfu_100ml = Number(r.ecoli_cfu_100ml);
     r.lat = (r.lat==='' || r.lat==null)? null : Number(r.lat);
     r.lon = (r.lon==='' || r.lon==null)? null : Number(r.lon);
@@ -31,6 +64,7 @@ async function main(){
     bySite[r.site_id].samples.push(r);
   }
   for(const s of Object.values(bySite)){
+    s.samples = s.samples.filter(x=>x.sample_datetime_local instanceof Date && !isNaN(x.sample_datetime_local));
     s.samples.sort((a,b)=>b.sample_datetime_local - a.sample_datetime_local);
   }
 
@@ -38,6 +72,7 @@ async function main(){
   const siteSummaries = [];
   let mostRecent = null;
   for(const [site_id, o] of Object.entries(bySite)){
+    if(!o.samples.length) continue;
     const latest = o.samples[0];
     if(!mostRecent || latest.sample_datetime_local > mostRecent) mostRecent = latest.sample_datetime_local;
     const cutoff = new Date(latest.sample_datetime_local.getTime() - 30*24*3600*1000);
@@ -70,7 +105,7 @@ async function main(){
     if(s.lat!=null && s.lon!=null && isFinite(s.lat) && isFinite(s.lon)){
       latlngs.push([s.lat,s.lon]);
       const m = L.circleMarker([s.lat,s.lon], {radius:9, color:s.color, fillColor:s.color, fillOpacity:.9, weight:2}).addTo(map);
-      m.bindPopup(`<b>${s.site_name}</b><br>${s.waterbody}<br><b>Latest:</b> ${s.latest_value} CFU/100 mL<br><b>30‑day GM:</b> ${s.gm30? s.gm30.toFixed(0):'—'}<br><b>Status:</b> ${s.status}<br><span class="note">Sampled: ${s.latest_dt.toLocaleString()}</span>`);
+      m.bindPopup(`<b>${s.site_name}</b><br>${s.waterbody}<br><b>Latest:</b> ${s.latest_value} CFU/100 mL<br><b>30‑day GM:</b> ${s.gm30? s.gm30.toFixed(0):'—'}<br><b>Status:</b> ${s.status}<br><span class="note">Sampled: ${s.latest_dt ? s.latest_dt.toLocaleString() : '—'}</span>`);
     }
   });
   if(latlngs.length){ map.fitBounds(L.latLngBounds(latlngs), {padding:[20,20]}); }
@@ -80,7 +115,8 @@ async function main(){
   const tbody = document.querySelector('#results tbody');
   for(const s of siteSummaries){
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.site_name}</td><td>${s.waterbody}</td><td>${s.latest_dt.toLocaleDateString()}</td><td><b>${s.latest_value}</b></td><td>${s.gm30? s.gm30.toFixed(0):'—'}</td><td><span class="badge ${s.status.toLowerCase()}">${s.status}</span></td>`;
+    const dateStr = s.latest_dt ? s.latest_dt.toLocaleDateString() : '—';
+    tr.innerHTML = `<td>${s.site_name}</td><td>${s.waterbody}</td><td>${dateStr}</td><td><b>${s.latest_value}</b></td><td>${s.gm30? s.gm30.toFixed(0):'—'}</td><td><span class="badge ${s.status.toLowerCase()}">${s.status}</span></td>`;
     tbody.appendChild(tr);
   }
 
