@@ -4,121 +4,242 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>EBCI Water Quality — E. coli (Rivers & Streams)</title>
+
+  <!-- Styles -->
   <link rel="stylesheet" href="css/styles.css"/>
+
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- CSV parsing + charts -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+  <!-- Site config (paths, constants, etc.) -->
   <script src="js/config.js"></script>
 </head>
+
 <body>
-<header>
-  <div class="header-inner">
-    <div class="header-logos">
-      <img src="assets/phhs_logo.png" alt="EBCI PHHS logo" class="logo-img"/>
-      <img src="assets/water_logo.png" alt="EBCI Water Quality logo" class="logo-img"/>
+  <!-- ======================= HEADER ======================= -->
+  <header>
+    <div class="header-inner">
+      <div class="header-logos">
+        <img src="assets/phhs_logo.png" alt="EBCI PHHS logo" class="logo-img"/>
+        <img src="assets/water_logo.png" alt="EBCI Water Quality logo" class="logo-img"/>
+      </div>
+      <div class="header-title" style="margin-left:10px">
+        <h1>EBCI Water Quality — E. coli (Rivers & Streams)</h1>
+        <small class="muted">Public transparency dashboard • Last updated: <span id="lastUpdated">—</span></small>
+      </div>
     </div>
-    <div class="header-title" style="margin-left:10px">
-      <h1>EBCI Water Quality — E. coli (Rivers & Streams)</h1>
-      <small class="muted">Public transparency dashboard • Last updated: 2025-08-18</small>
+  </header>
+
+  <div class="container">
+    <!-- ======================= KPI STRIP ======================= -->
+    <div class="kpi">
+      <div class="item"><div class="label">Sites monitored</div><div class="value" id="kpi-total">—</div></div>
+      <div class="item"><div class="label">Advisories</div><div class="value" id="kpi-adv">—</div></div>
+      <div class="item"><div class="label">Cautions</div><div class="value" id="kpi-cau">—</div></div>
+    </div>
+
+    <!-- ======================= LEGEND ======================= -->
+    <div class="legend" style="margin:10px 0 6px 0">
+      <span class="badge good">Good (below EPA STV and GM)</span>
+      <span class="badge caution">Caution (235–409 CFU/100 mL)</span>
+      <span class="badge advisory">Advisory (≥410 CFU/100 mL or GM ≥126)</span>
+    </div>
+
+    <!-- ======================= MAP + LATEST GRID ======================= -->
+    <div class="grid">
+      <!-- Map -->
+      <div class="card">
+        <h2>Map of Sampling Sites</h2>
+        <div id="map" class="map"></div>
+        <p id="map-note" class="note"></p>
+        <p class="note">
+          Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater E. coli (GM 126; STV 410 CFU/100 mL).
+          Learn more: https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
+        </p>
+      </div>
+
+      <!-- Latest Results table -->
+      <div class="card">
+        <h2>Latest Results</h2>
+        <table id="results" class="table">
+          <thead>
+            <tr>
+              <th>Site</th>
+              <th>Waterbody</th>
+              <th>Date</th>
+              <th>E. coli (CFU/100 mL)</th>
+              <th>30-day GM</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="note">
+          “GM” = geometric mean of samples in the last 30 days for the site. Non-detects (“&lt;”) are treated as half the
+          detection limit; “&gt;” are shown as reported.
+        </p>
+      </div>
+    </div>
+
+    <!-- ======================= SITE TRENDS ======================= -->
+    <div class="card" style="margin-top:16px">
+      <h2>Site Trends</h2>
+      <div class="filter-row">
+        <label for="siteFilter">Site:</label>
+        <select id="siteFilter"></select>
+      </div>
+      <div id="siteChart" style="height:540px"></div>
+      <p class="note">Choose a specific site or “All sites.” The dashed line indicates the EPA STV (410 CFU/100 mL).</p>
+    </div>
+
+    <!-- ======================= GAME (UNDER Site Trends) ======================= -->
+    <div class="card" id="gameCard" style="margin-top:16px">
+      <h2>Game: River Ranger — E. coli Invaders</h2>
+      <div class="game-grid">
+        <div class="play">
+          <canvas id="ecoliGame" width="780" height="520"></canvas>
+
+          <!-- Start overlay -->
+          <div id="gameStart" class="game-overlay">
+            <div class="panel">
+              <h3>Ready?</h3>
+              <div class="small">
+                Click to play. Use ←/→ to move and hold Space to fire. Clear levels quickly for time bonuses.
+              </div>
+              <div id="gameStartBtn" class="playbtn">▶</div>
+            </div>
+          </div>
+
+          <!-- Game over / victory overlay -->
+          <div id="gameOverlay" class="game-overlay hidden">
+            <div class="panel">
+              <h3 id="gameOverlayTitle">Game Over</h3>
+              <div>Score</div>
+              <div id="gameFinalScore" class="big">0</div>
+              <div id="gameVictoryMsg" class="small" style="display:none">
+                <b>Way to go — you saved the town from the E. coli outbreak!</b>
+              </div>
+              <div class="celebrate" id="gameCelebrate">
+                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="60" cy="46" r="16" fill="#80ED99" stroke="#22577A" stroke-width="3"/>
+                  <rect x="48" y="62" width="24" height="28" rx="6" fill="#57CC99" stroke="#22577A" stroke-width="3"/>
+                </svg>
+                <div class="small">Victory dance!</div>
+              </div>
+              <div class="small" style="margin:6px 0 10px">Enter initials to save your high score.</div>
+              <div class="row">
+                <input id="gameInitials" class="input" maxlength="3" placeholder="ABC" style="width:80px;text-transform:uppercase" />
+                <button id="gameSaveScore" class="btn">Save</button>
+                <button id="gameRestart" class="btn secondary">Play again</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Toast -->
+          <div id="gameToast" class="toast"></div>
+
+          <!-- HUD -->
+          <div class="hud" style="margin-top:6px">
+            <div><b>Score:</b> <span id="gameScore" class="kv">0</span></div>
+            <div><b>Lives:</b> <span id="gameLives" class="kv">3</span></div>
+            <div><b>Level:</b> <span id="gameLevel" class="kv">1 / 5</span></div>
+          </div>
+        </div>
+
+        <!-- High scores / description -->
+        <div class="side">
+          <p>
+            <b>About the game:</b> A quick, just-for-fun Space-Invaders-style mini-game where each “invader” represents a
+            potential high E. coli day. Move side-to-side, hold Space to send public-health “shots,” and clear levels as fast
+            as you can for time-based bonus points.
+          </p>
+          <h3>High Scores</h3>
+          <table class="table">
+            <thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Date</th></tr></thead>
+            <tbody id="gameHsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Load game script after the game block -->
+    <script src="js/game.js"></script>
+
+    <!-- ======================= ABOUT & GUIDANCE ======================= -->
+    <div class="card" style="margin-top:16px">
+      <h2>About the Data & Health Guidance</h2>
+      <p><b>What this dashboard shows</b>: culture-based E. coli measurements (CFU/100 mL; MPN/100 mL for Quanti-Tray/Colilert methods) from EBCI rivers and streams to support safe recreation and public transparency.</p>
+      <ul>
+        <li><b>Why E. coli?</b> It is an indicator of fecal contamination. While most strains are harmless, elevated counts correlate with a higher probability of pathogens that can cause gastrointestinal illness.</li>
+        <li><b>How to interpret results</b> (EPA Recreational Water Quality Criteria, 2012):
+          <ul>
+            <li><b>Geometric Mean (GM)</b>: target ≤ <b>126 CFU/100 mL</b> computed over a 30-day window (EPA recommends ≥5 samples where feasible).</li>
+            <li><b>Statistical Threshold Value (STV)</b>: single-sample level <b>410 CFU/100 mL</b>; no more than <b>10%</b> of samples should exceed the STV over the same assessment window.</li>
+            <li><b>EBCI status badges</b>: Good (below GM & STV), Caution (235–409), Advisory (≥410 or GM ≥126).</li>
+          </ul>
+        </li>
+        <li><b>When levels are high</b>: After rainfall or runoff events, bacteria often spike for 24–48 hours. Consider postponing swimming/wading, avoid ingesting water, and wash hands before eating.</li>
+        <li><b>Higher-risk groups</b>: young children, older adults, pregnant people, and those who are immunocompromised should take extra care.</li>
+        <li><b>Data limitations</b>: Single samples are snapshots; conditions change rapidly with weather and flow. The GM smooths noise but requires multiple samples.</li>
+      </ul>
+
+      <p><b>Official resources</b>:</p>
+      <ul class="resource-list">
+        <li>
+          EPA Recreational Water Quality Criteria (2012):
+          <a href="https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods" target="_blank" rel="noopener noreferrer">
+            https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
+          </a>
+        </li>
+        <li>
+          EPA E. coli parameter factsheet:
+          <a href="https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf" target="_blank" rel="noopener noreferrer">
+            https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf
+          </a>
+        </li>
+        <li>
+          CDC Healthy Swimming prevention:
+          <a href="https://www.cdc.gov/healthy-swimming/prevention/index.html" target="_blank" rel="noopener noreferrer">
+            https://www.cdc.gov/healthy-swimming/prevention/index.html
+          </a>
+        </li>
+        <li>
+          CDC E. coli (general information):
+          <a href="https://www.cdc.gov/ecoli/prevention/index.html" target="_blank" rel="noopener noreferrer">
+            https://www.cdc.gov/ecoli/prevention/index.html
+          </a>
+        </li>
+      </ul>
     </div>
   </div>
-</header>
 
-<div class="container">
-  <div class="kpi">
-    <div class="item"><div class="label">Sites monitored</div><div class="value" id="kpi-total">—</div></div>
-    <div class="item"><div class="label">Advisories</div><div class="value" id="kpi-adv">—</div></div>
-    <div class="item"><div class="label">Cautions</div><div class="value" id="kpi-cau">—</div></div>
-  </div>
-
-  <div class="legend" style="margin:10px 0 6px 0">
-    <span class="badge good">Good (below EPA STV and GM)</span>
-    <span class="badge caution">Caution (235–409 CFU/100 mL)</span>
-    <span class="badge advisory">Advisory (≥410 CFU/100 mL or GM ≥126)</span>
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <h2>Map of Sampling Sites</h2>
-      <div id="map" class="map"></div>
-      <p id="map-note" class="note"></p>
-      <p class="note">Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater E. coli (GM 126; STV 410 CFU/100 mL). Learn more: https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods</p>
-    </div>
-    <div class="card">
-      <h2>Latest Results</h2>
-      <table id="results" class="table">
-        <thead>
-          <tr>
-            <th>Site</th><th>Waterbody</th><th>Date</th><th>E. coli (CFU/100 mL)</th><th>30‑day GM</th><th>Status</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p class="note">“GM” = geometric mean of samples in the last 30 days for the site. Non‑detects (“&lt;”) are treated as half the detection limit; “&gt;” are shown as reported.</p>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:16px">
-    <h2>Site Trends</h2>
-    <div class="filter-row">
-      <label for="siteFilter">Site:</label>
-      <select id="siteFilter"></select>
-    </div>
-    <div id="siteChart" style="height:540px"></div>
-    <p class="note">Choose a specific site or “All sites.” The dashed line indicates the EPA STV (410 CFU/100 mL).</p>
-  </div>
-
-  <div class="card" style="margin-top:16px">
-    <h2>About the Data & Health Guidance</h2>
-    <p><b>What this dashboard shows</b>: culture‑based E. coli measurements (CFU/100 mL; MPN/100 mL for Quanti‑Tray/Colilert methods) from EBCI rivers and streams to support safe recreation and public transparency.</p>
-    <ul>
-      <li><b>Why E. coli?</b> It is an indicator of fecal contamination. While most strains are harmless, elevated counts correlate with a higher probability of pathogens that can cause gastrointestinal illness.</li>
-      <li><b>How to interpret results</b> (EPA Recreational Water Quality Criteria, 2012):
-        <ul>
-          <li><b>Geometric Mean (GM)</b>: target ≤ <b>126 CFU/100 mL</b> computed over a 30‑day window (EPA recommends ≥5 samples where feasible).</li>
-          <li><b>Statistical Threshold Value (STV)</b>: single‑sample level <b>410 CFU/100 mL</b>; no more than <b>10%</b> of samples should exceed the STV over the same assessment window.</li>
-          <li><b>EBCI status badges</b>: Good (below GM & STV), Caution (235–409), Advisory (≥410 or GM ≥126).</li>
-        </ul>
-      </li>
-      <li><b>When levels are high</b>: After rainfall or runoff events, bacteria often spike for 24–48 hours. Consider postponing swimming/wading, avoid ingesting water, and wash hands before eating.</li>
-      <li><b>Higher‑risk groups</b>: young children, older adults, pregnant people, and those who are immunocompromised should take extra care.</li>
-      <li><b>Data limitations</b>: Single samples are snapshots; conditions change rapidly with weather and flow. The GM smooths noise but requires multiple samples.</li>
-    </ul>
-    <p><b>Official resources</b>:</p>
-   <ul class="resource-list">
-  <li>
-    EPA Recreational Water Quality Criteria (2012):
-    <a href="https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods" target="_blank" rel="noopener noreferrer">
-      https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
-    </a>
-  </li>
-  <li>
-    EPA E. coli parameter factsheet:
-    <a href="https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf" target="_blank" rel="noopener noreferrer">
-      https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf
-    </a>
-  </li>
-  <li>
-    CDC Healthy Swimming prevention:
-    <a href="https://www.cdc.gov/healthy-swimming/prevention/index.html" target="_blank" rel="noopener noreferrer">
-      https://www.cdc.gov/healthy-swimming/prevention/index.html
-    </a>
-  </li>
-  <li>
-    CDC E. coli (general information):
-    <a href="https://www.cdc.gov/ecoli/prevention/index.html" target="_blank" rel="noopener noreferrer">
-      https://www.cdc.gov/ecoli/prevention/index.html
-    </a>
-  </li>
-</ul>
-  </div>
-</div>
-
+ <!-- ======================= FOOTER ======================= -->
 <footer>
-  <div class="container">Questions? Contact EBCI PHHS (PHONE) • Water Quality Team (PHONE) • (EMAIL)</div>
+  <div class="container">
+    <h3>Contact — EBCI Water Quality Team</h3>
+    <address>
+      <div>
+        <strong>Rainee Tetreault</strong><br>
+        Email: <a href="mailto:raintetr@ebci-nsn.gov">raintetr@ebci-nsn.gov</a>
+        &nbsp;•&nbsp;
+        Phone: <a href="tel:+18283596771">828-359-6771</a>
+      </div>
+      <div style="margin-top:6px">
+        <strong>Derek Tahquette</strong><br>
+        Email: <a href="mailto:johntahq@ebci-nsn.gov">johntahq@ebci-nsn.gov</a>
+        &nbsp;•&nbsp;
+        Phone: <a href="tel:+18283596141">828-359-6141</a>
+      </div>
+    </address>
+  </div>
 </footer>
 
-<script src="js/app.js"></script>
+
+  <!-- ======================= APP SCRIPT ======================= -->
+  <script src="js/app.js"></script>
 </body>
 </html>

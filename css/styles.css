@@ -3,14 +3,15 @@
   --muted:#475569; --bg:#f8fafc;
 }
 
-/* Base */
+/* ========== Base ========== */
 *{ box-sizing:border-box; }
 body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   margin:0; background:var(--bg); color:#0f172a;
 }
+a{ color:var(--primary); text-decoration:underline; }
 
-/* Header */
+/* ========== Header ========== */
 header{ background:var(--primary); color:white; padding:10px 0; }
 .header-inner{ max-width:1300px; margin:0 auto; display:flex; align-items:center; gap:12px; padding:8px 14px; }
 .header-logos{ display:flex; align-items:center; gap:12px; }
@@ -19,20 +20,20 @@ header{ background:var(--primary); color:white; padding:10px 0; }
 .header-title h1{ margin:0; font-size:22px; font-weight:700; }
 small.muted{ color:#e5e7eb; }
 
-/* Layout */
+/* ========== Layout ========== */
 .container{ max-width:1300px; margin:0 auto; padding:16px; }
 .grid{ display:grid; grid-template-columns:1.2fr .8fr; gap:16px; }
 .card{ background:white; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); padding:14px; }
 h2{ margin:0 0 8px 0; font-size:18px; }
 
-/* Legend badges */
+/* ========== Legend badges ========== */
 .legend{ display:flex; gap:10px; flex-wrap:wrap; }
 .badge{ padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(0,0,0,.08); }
 .badge.good{ background:#C7F9CC; color:#094d2a; border-color:#a7f3d0; }
 .badge.caution{ background:#fff7ed; color:#7a3e00; border-color:#fed7aa; }
 .badge.advisory{ background:#fee2e2; color:#7f1d1d; border-color:#fecaca; }
 
-/* PowerPoint Slide Style Table (Simple Rows) */
+/* ========== PowerPoint Slide Style Table (Simple Rows) ========== */
 .table{ width:100%; border-collapse:separate; border-spacing:0; }
 .table thead th{
   background:#e5f2f7; color:#0b3551; text-align:left;
@@ -42,22 +43,55 @@ h2{ margin:0 0 8px 0; font-size:18px; }
 .table tbody td{ padding:10px 12px; }
 .table tbody tr:hover{ background:#f9fafb; }
 
-/* KPIs */
+/* ========== KPIs ========== */
 .kpi{ display:flex; gap:16px; flex-wrap:wrap; }
 .kpi .item{ background:white; border-radius:12px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
 .kpi .value{ font-weight:700; font-size:20px; }
 
-/* Map */
+/* ========== Map ========== */
 .map{ height:560px; border-radius:14px; overflow:hidden; }
 
-/* Text & links */
+/* ========== Text & links ========== */
 .note{ font-size:12px; color:var(--muted); }
-a{ color:var(--primary); }
-
-/* Resources list: ensure long URLs wrap on small screens */
 .resource-list a{ overflow-wrap:anywhere; word-break:break-word; }
 
-/* Filters */
+/* ========== Filters ========== */
 .filter-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
 .filter-row label{ font-weight:600; }
 select{ padding:6px 8px; border:1px solid #cbd5e1; border-radius:8px; background:white; }
+
+/* ========== Footer (basic spacing) ========== */
+footer{ background:#f1f5f9; margin-top:20px; }
+footer .container{ padding:14px 16px; }
+
+/* ========== Small utilities used by the game ========== */
+.btn{ background:var(--accent); border:none; color:#00323a; padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer; }
+.btn.secondary{ background:#e5f2f7; color:#0b3551; }
+.input{ padding:6px 8px; border:1px solid #cbd5e1; border-radius:8px; }
+.hud{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+.kv{ font-variant-numeric:tabular-nums; }
+.small{ font-size:12px; color:#475569; }
+
+/* ========== GAME (dashboard embed) ========== */
+.game-grid{ display:grid; grid-template-columns: 820px 1fr; gap:14px; }
+.game-overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,0.65); border-radius:12px; }
+.game-overlay.hidden{ display:none; }
+.play{ position:relative; }
+.playbtn{ display:inline-flex; align-items:center; justify-content:center; width:88px; height:88px; border-radius:999px; background:#38A3A5; color:#00323a; font-size:34px; font-weight:900; border:4px solid #C7F9CC; cursor:pointer; margin:10px auto; }
+.playbtn:hover{ transform:scale(1.03); }
+.panel{ background:#fff; padding:16px 18px; border-radius:12px; max-width:540px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.2); }
+.big{ font-size:26px; font-weight:800; }
+.row{ display:flex; gap:8px; justify-content:center; align-items:center; margin-top:8px; }
+.toast{ position:absolute; top:10px; right:10px; background:#0b3551; color:#fff; padding:8px 12px; border-radius:10px; opacity:0; transition:opacity .25s; }
+.toast.show{ opacity:1; }
+@keyframes jump{0%{transform:translateY(0)}100%{transform:translateY(-14px)}}
+.celebrate{ display:none; margin-top:8px }
+.celebrate.show{ display:flex; flex-direction:column; align-items:center; gap:8px }
+.celebrate svg{ width:120px; height:120px; animation:jump .5s ease-in-out infinite alternate }
+
+/* Responsive for game/grid */
+@media (max-width: 1100px){
+  .grid{ grid-template-columns:1fr; }
+  .game-grid{ grid-template-columns: 1fr; }
+  .map{ height:460px; }
+}
