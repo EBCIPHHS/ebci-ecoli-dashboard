@@ -100,7 +100,7 @@
 
     <!-- ======================= GAME (UNDER Site Trends) ======================= -->
     <div class="card" id="gameCard" style="margin-top:16px">
-      <h2>Game: River Ranger — E. coli Invaders</h2>
+      <h2>Game: E. coli Invaders</h2>
       <div class="game-grid">
         <div class="play">
           <canvas id="ecoliGame" width="780" height="520"></canvas>
@@ -152,23 +152,25 @@
           </div>
         </div>
 
-        <!-- High scores / description -->
-        <div class="side">
-          <p>
-            <b>About the game:</b> A quick, just-for-fun Space-Invaders-style mini-game where each “invader” represents a
-            potential high E. coli day. Move side-to-side, hold Space to send public-health “shots,” and clear levels as fast
-            as you can for time-based bonus points.
-          </p>
-          <h3>High Scores</h3>
-          <table class="table">
-            <thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Date</th></tr></thead>
-            <tbody id="gameHsBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <!-- Load game script after the game block -->
-    <script src="js/game.js"></script>
+<!-- High scores / description -->
+<div class="side">
+  <p>
+    <b>About the game:</b> A just-for-fun, Space-Invaders-style mini-game where each “invader”
+    represents potential <i>E. coli</i> contamination. Use &larr;/&rarr; to move and hold Space to fire.
+    Clear levels quickly to earn time-based bonus points.
+  </p>
+  <h3>High Scores</h3>
+  <table class="table">
+    <thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Date</th></tr></thead>
+    <tbody id="gameHsBody"></tbody>
+  </table>
+</div>
+</div> <!-- /.game-grid -->
+</div> <!-- /#gameCard -->
+
+<!-- Load game script after the game block -->
+<script src="js/game.js?v=2"></script>
+
 
     <!-- ======================= ABOUT & GUIDANCE ======================= -->
     <div class="card" style="margin-top:16px">
