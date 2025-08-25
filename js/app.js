@@ -1,4 +1,3 @@
-
 // ---------- Helpers ----------
 function gm(values){
   const v = values.filter(x => x>0 && isFinite(x));
@@ -127,13 +126,13 @@ async function main(){
     if(s.lat!=null && s.lon!=null && isFinite(s.lat) && isFinite(s.lon)){
       latlngs.push([s.lat,s.lon]);
       const m = L.circleMarker([s.lat,s.lon], {radius:9, color:s.color, fillColor:s.color, fillOpacity:.9, weight:2}).addTo(map);
-      m.bindPopup(`<b>${s.site_name}</b><br>${s.waterbody}<br><b>Latest:</b> ${s.latest_value} CFU/100 mL<br><b>30‑day GM:</b> ${s.gm30? s.gm30.toFixed(0):'—'}<br><b>Status:</b> ${s.status}<br><span class="note">Sampled: ${s.latest_dt ? s.latest_dt.toLocaleString() : '—'}</span>`);
+      m.bindPopup(`<b>${s.site_name}</b><br>${s.waterbody}<br><b>Latest:</b> ${s.latest_value} CFU/100 mL<br><b>30-day GM:</b> ${s.gm30? s.gm30.toFixed(0):'—'}<br><b>Status:</b> ${s.status}<br><span class="note">Sampled: ${s.latest_dt ? s.latest_dt.toLocaleString() : '—'}</span>`);
     }
   });
   if(latlngs.length){ map.fitBounds(L.latLngBounds(latlngs), {padding:[20,20]}); }
 
-  // Table (sorted high→low by latest)
-  siteSummaries.sort((a,b)=>b.latest_value - a.latest_value);
+  // Table (NOW alphabetized by Site name A→Z)
+  siteSummaries.sort((a,b)=> a.site_name.localeCompare(b.site_name, 'en', {sensitivity:'base'}));
   const tbody = document.querySelector('#results tbody');
   for(const s of siteSummaries){
     const dateStr = s.latest_dt ? s.latest_dt.toLocaleDateString() : '—';
