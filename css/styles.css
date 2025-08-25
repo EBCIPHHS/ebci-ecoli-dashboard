@@ -89,9 +89,14 @@ footer .container{ padding:14px 16px; }
 .celebrate.show{ display:flex; flex-direction:column; align-items:center; gap:8px }
 .celebrate svg{ width:120px; height:120px; animation:jump .5s ease-in-out infinite alternate }
 
-/* Responsive for game/grid */
+/* Responsive for layout and game */
 @media (max-width: 1100px){
   .grid{ grid-template-columns:1fr; }
   .game-grid{ grid-template-columns: 1fr; }
   .map{ height:460px; }
 }
+
+/* ========== OPTIONAL: subtle divider for explainer blocks ========== */
+.status-help { margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb; }
+.status-help ul { margin:8px 0 0 18px; padding:0; font-size:13px; }
+.status-help li { margin:6px 0; }

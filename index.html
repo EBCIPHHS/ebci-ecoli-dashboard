@@ -25,10 +25,10 @@
   <header>
     <div class="header-inner">
       <div class="header-logos">
-  <img src="assets/natural_resources_logo.png?v=1" alt="EBCI Natural Resources logo" class="logo-img"/>
-  <img src="assets/water_logo.png?v=1" alt="EBCI Water Quality logo" class="logo-img"/>
-  <img src="assets/phhs_logo.png?v=1" alt="EBCI PHHS logo" class="logo-img"/>
-</div>
+        <img src="assets/natural_resources_logo.png?v=2" alt="EBCI Natural Resources logo" class="logo-img"/>
+        <img src="assets/water_logo.png?v=2" alt="EBCI Water Quality logo" class="logo-img"/>
+        <img src="assets/phhs_logo.png?v=2" alt="EBCI PHHS logo" class="logo-img"/>
+      </div>
       <div class="header-title" style="margin-left:10px">
         <h1>EBCI Water Quality — E. coli (Rivers & Streams)</h1>
         <small class="muted">Public transparency dashboard • Last updated: <span id="lastUpdated">—</span></small>
@@ -59,14 +59,48 @@
         <div id="map" class="map"></div>
         <p id="map-note" class="note"></p>
         <p class="note">
-          Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater E. coli (GM 126; STV 410 CFU/100 mL).
-          Learn more: https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
+          Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater E. coli
+          (GM 126; STV 410 CFU/100 mL). Learn more:
+          https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
         </p>
+
+        <!-- NEW: status explainer placed under the EPA note -->
+        <div class="status-help" style="margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb">
+          <h3 style="margin:0 0 6px 0; font-size:16px;">How status is determined (EBCI standards)</h3>
+          <p class="note" style="font-size:13px;">
+            The Eastern Band of Cherokee Indians’ <b>Water Quality Standards (WQS)</b>—adopted under
+            <b>Cherokee Code Chapter 113E</b>—designate <b>Recreation</b> and <b>Ceremonial Use</b> for many surface waters.
+            For freshwater, the bacteria criteria are:
+            <br/>• <b>Geometric mean (GM)</b> of <i>E. coli</i> over a 30-day period ≤ <b>126 CFU/100 mL</b>, and
+            <br/>• No more than <b>10%</b> of samples in the same 30-day period exceed <b>410 CFU/100 mL</b>—the
+            <b>Statistical Threshold Value (STV)</b>.
+            These values align with the U.S. Environmental Protection Agency’s <b>Recreational Water Quality Criteria (RWQC, 2012)</b>.
+          </p>
+          <ul style="margin:8px 0 0 18px; padding:0; font-size:13px;">
+            <li><b>Good</b> — Meets EBCI WQS for Recreation/Ceremonial Use: the site’s <b>30-day GM &lt; 126</b> and the <b>latest sample &lt; 410</b> CFU/100 mL.</li>
+            <li><b>Caution</b> — <b>Latest sample 235–409</b> CFU/100 mL (approaching the <b>410</b> STV) while the <b>30-day GM remains &lt; 126</b>. Short-lived spikes often follow rain/runoff; consider postponing water contact for 24–48 hours.</li>
+            <li><b>Advisory</b> — Either the <b>latest sample ≥ 410</b> CFU/100 mL or the <b>30-day GM ≥ 126</b>. Avoid swimming/wading where posted; higher-risk groups (young children, older adults, immunocompromised) should take extra care.</li>
+          </ul>
+          <p class="note" style="font-size:12px; margin-top:8px;">
+            <i>Why GM and STV?</i> The <b>GM</b> reflects typical conditions over the last 30 days; the <b>STV (410)</b> controls high single-day results.
+            EPA notes that about five samples in 30 days is ideal where feasible.
+          </p>
+          <p class="note" style="font-size:12px; margin-top:4px;">
+            <b>Monitoring frequency.</b> Sites are sampled <b>regularly during the primary recreation season (approximately April–September)</b>
+            as staffing, safety, and river conditions allow. Additional sampling may occur after rainfall/runoff or when conditions warrant.
+          </p>
+        </div>
       </div>
 
       <!-- Latest Results table -->
       <div class="card">
         <h2>Latest Results</h2>
+        <!-- NEW one-line explainer under the title -->
+        <p class="note" style="margin-top:-4px;">
+          <b>How status is calculated:</b> The badge uses the site’s <b>30-day geometric mean (GM)</b> together with the
+          <b>latest sample</b>. <i>Advisory</i> shows if <b>GM ≥ 126</b> or <b>latest sample ≥ 410</b>; <i>Caution</i> shows when
+          <b>latest sample is 235–409</b> and <b>GM &lt; 126</b>; otherwise <i>Good</i>.
+        </p>
         <table id="results" class="table">
           <thead>
             <tr>
@@ -100,7 +134,7 @@
 
     <!-- ======================= GAME (UNDER Site Trends) ======================= -->
     <div class="card" id="gameCard" style="margin-top:16px">
-      <h2>Game: E. coli Invaders</h2>
+      <h2>Game: River Ranger — E. coli Invaders</h2>
       <div class="game-grid">
         <div class="play">
           <canvas id="ecoliGame" width="780" height="520"></canvas>
@@ -110,7 +144,7 @@
             <div class="panel">
               <h3>Ready?</h3>
               <div class="small">
-                Click to play. Use ←/→ to move and hold Space to fire. Clear levels quickly for time bonuses.
+                Click to play. Use &larr;/&rarr; to move and hold Space to fire. Clear levels quickly for time bonuses.
               </div>
               <div id="gameStartBtn" class="playbtn">▶</div>
             </div>
@@ -152,25 +186,23 @@
           </div>
         </div>
 
-<!-- High scores / description -->
-<div class="side">
-  <p>
-    <b>About the game:</b> A just-for-fun, Space-Invaders-style mini-game where each “invader”
-    represents potential <i>E. coli</i> contamination. Use &larr;/&rarr; to move and hold Space to fire.
-    Clear levels quickly to earn time-based bonus points.
-  </p>
-  <h3>High Scores</h3>
-  <table class="table">
-    <thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Date</th></tr></thead>
-    <tbody id="gameHsBody"></tbody>
-  </table>
-</div>
-</div> <!-- /.game-grid -->
-</div> <!-- /#gameCard -->
-
-<!-- Load game script after the game block -->
-<script src="js/game.js?v=2"></script>
-
+        <!-- High scores / description -->
+        <div class="side">
+          <p>
+            <b>About the game:</b> A just-for-fun, Space-Invaders-style mini-game where each “invader”
+            represents potential <i>E. coli</i> contamination. Use &larr;/&rarr; to move and hold Space to fire.
+            Clear levels quickly to earn time-based bonus points.
+          </p>
+          <h3>High Scores</h3>
+          <table class="table">
+            <thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Date</th></tr></thead>
+            <tbody id="gameHsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Load game script after the game block -->
+    <script src="js/game.js?v=2"></script>
 
     <!-- ======================= ABOUT & GUIDANCE ======================= -->
     <div class="card" style="margin-top:16px">
@@ -193,6 +225,12 @@
       <p><b>Official resources</b>:</p>
       <ul class="resource-list">
         <li>
+          Cherokee Code, Chapter 113E – Water Quality:
+          <a href="https://library.municode.com/tribes_and_tribal_nations/eastern_band_of_cherokee_indians/codes/code_of_ordinances?nodeId=THCHCO_CH113EWAQUCOTRWA" target="_blank" rel="noopener noreferrer">
+            https://library.municode.com/tribes_and_tribal_nations/eastern_band_of_cherokee_indians/codes/code_of_ordinances?nodeId=THCHCO_CH113EWAQUCOTRWA
+          </a>
+        </li>
+        <li>
           EPA Recreational Water Quality Criteria (2012):
           <a href="https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods" target="_blank" rel="noopener noreferrer">
             https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
@@ -204,45 +242,32 @@
             https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf
           </a>
         </li>
-        <li>
-          CDC Healthy Swimming prevention:
-          <a href="https://www.cdc.gov/healthy-swimming/prevention/index.html" target="_blank" rel="noopener noreferrer">
-            https://www.cdc.gov/healthy-swimming/prevention/index.html
-          </a>
-        </li>
-        <li>
-          CDC E. coli (general information):
-          <a href="https://www.cdc.gov/ecoli/prevention/index.html" target="_blank" rel="noopener noreferrer">
-            https://www.cdc.gov/ecoli/prevention/index.html
-          </a>
-        </li>
       </ul>
     </div>
   </div>
 
- <!-- ======================= FOOTER ======================= -->
-<footer>
-  <div class="container">
-    <h3>Contact — EBCI Water Quality Team</h3>
-    <address>
-      <div>
-        <strong>Rainee Tetreault</strong><br>
-        Email: <a href="mailto:raintetr@ebci-nsn.gov">raintetr@ebci-nsn.gov</a>
-        &nbsp;•&nbsp;
-        Phone: <a href="tel:+18283596771">828-359-6771</a>
-      </div>
-      <div style="margin-top:6px">
-        <strong>Derek Tahquette</strong><br>
-        Email: <a href="mailto:johntahq@ebci-nsn.gov">johntahq@ebci-nsn.gov</a>
-        &nbsp;•&nbsp;
-        Phone: <a href="tel:+18283596141">828-359-6141</a>
-      </div>
-    </address>
-  </div>
-</footer>
-
+  <!-- ======================= FOOTER ======================= -->
+  <footer>
+    <div class="container">
+      <h3>Contact — EBCI Water Quality Team</h3>
+      <address>
+        <div>
+          <strong>Rainee Tetreault</strong><br>
+          Email: <a href="mailto:raintetr@ebci-nsn.gov">raintetr@ebci-nsn.gov</a>
+          &nbsp;•&nbsp;
+          Phone: <a href="tel:+18283596771">828-359-6771</a>
+        </div>
+        <div style="margin-top:6px">
+          <strong>Derek Tahquette</strong><br>
+          Email: <a href="mailto:johntahq@ebci-nsn.gov">johntahq@ebci-nsn.gov</a>
+          &nbsp;•&nbsp;
+          Phone: <a href="tel:+18283596141">828-359-6141</a>
+        </div>
+      </address>
+    </div>
+  </footer>
 
   <!-- ======================= APP SCRIPT ======================= -->
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>
