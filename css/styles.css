@@ -1,6 +1,11 @@
 :root{
-  --primary:#22577A; --accent:#38A3A5; --accent2:#57CC99; --accent3:#80ED99; --accent4:#C7F9CC;
-  --muted:#475569; --bg:#f8fafc;
+  --primary:#22577A; 
+  --accent:#38A3A5; 
+  --accent2:#57CC99; 
+  --accent3:#80ED99; 
+  --accent4:#C7F9CC;
+  --muted:#475569; 
+  --bg:#f8fafc;
 }
 
 /* ========== Base ========== */
@@ -33,7 +38,7 @@ h2{ margin:0 0 8px 0; font-size:18px; }
 .badge.caution{ background:#fff7ed; color:#7a3e00; border-color:#fed7aa; }
 .badge.advisory{ background:#fee2e2; color:#7f1d1d; border-color:#fecaca; }
 
-/* ========== PowerPoint Slide Style Table (Simple Rows) ========== */
+/* ========== PowerPoint-style Table ========== */
 .table{ width:100%; border-collapse:separate; border-spacing:0; }
 .table thead th{
   background:#e5f2f7; color:#0b3551; text-align:left;
@@ -48,6 +53,15 @@ h2{ margin:0 0 8px 0; font-size:18px; }
 .kpi .item{ background:white; border-radius:12px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
 .kpi .value{ font-weight:700; font-size:20px; }
 
+/* KPI color states (JS toggles these classes) */
+.kpi .item.advisory { background:#fee2e2; border:1px solid #fecaca; }
+.kpi .item.advisory .label, 
+.kpi .item.advisory .value { color:#7f1d1d; }
+
+.kpi .item.caution  { background:#fff7ed; border:1px solid #fed7aa; }
+.kpi .item.caution  .label, 
+.kpi .item.caution  .value { color:#7a3e00; }
+
 /* ========== Map ========== */
 .map{ height:560px; border-radius:14px; overflow:hidden; }
 
@@ -60,11 +74,11 @@ h2{ margin:0 0 8px 0; font-size:18px; }
 .filter-row label{ font-weight:600; }
 select{ padding:6px 8px; border:1px solid #cbd5e1; border-radius:8px; background:white; }
 
-/* ========== Footer (basic spacing) ========== */
+/* ========== Footer ========== */
 footer{ background:#f1f5f9; margin-top:20px; }
 footer .container{ padding:14px 16px; }
 
-/* ========== Small utilities used by the game ========== */
+/* ========== Buttons / Inputs (used by game too) ========== */
 .btn{ background:var(--accent); border:none; color:#00323a; padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer; }
 .btn.secondary{ background:#e5f2f7; color:#0b3551; }
 .input{ padding:6px 8px; border:1px solid #cbd5e1; border-radius:8px; }
@@ -96,7 +110,7 @@ footer .container{ padding:14px 16px; }
   .map{ height:460px; }
 }
 
-/* ========== OPTIONAL: subtle divider for explainer blocks ========== */
+/* ========== Status explainer block ========== */
 .status-help { margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb; }
 .status-help ul { margin:8px 0 0 18px; padding:0; font-size:13px; }
 .status-help li { margin:6px 0; }

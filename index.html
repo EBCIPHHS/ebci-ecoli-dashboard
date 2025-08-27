@@ -31,7 +31,10 @@
       </div>
       <div class="header-title" style="margin-left:10px">
         <h1>EBCI Water Quality — E. coli (Rivers & Streams)</h1>
-        <small class="muted">Public transparency dashboard • Last updated: <span id="lastUpdated">—</span></small>
+        <small class="muted">
+          Public transparency dashboard • Last updated:
+          <span id="lastUpdated">—</span>
+        </small>
       </div>
     </div>
   </header>
@@ -39,9 +42,20 @@
   <div class="container">
     <!-- ======================= KPI STRIP ======================= -->
     <div class="kpi">
-      <div class="item"><div class="label">Sites monitored</div><div class="value" id="kpi-total">—</div></div>
-      <div class="item"><div class="label">Advisories</div><div class="value" id="kpi-adv">—</div></div>
-      <div class="item"><div class="label">Cautions</div><div class="value" id="kpi-cau">—</div></div>
+      <div class="item" id="kpi-total-box">
+        <div class="label" id="kpi-total-label">Sites monitored</div>
+        <div class="value" id="kpi-total">—</div>
+      </div>
+
+      <div class="item" id="kpi-adv-box">
+        <div class="label" id="kpi-adv-label">Advisories</div>
+        <div class="value" id="kpi-adv">—</div>
+      </div>
+
+      <div class="item" id="kpi-cau-box">
+        <div class="label" id="kpi-cau-label">Cautions</div>
+        <div class="value" id="kpi-cau">—</div>
+      </div>
     </div>
 
     <!-- ======================= LEGEND ======================= -->
@@ -59,12 +73,14 @@
         <div id="map" class="map"></div>
         <p id="map-note" class="note"></p>
         <p class="note">
-          Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater E. coli
+          Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater <i>E. coli</i>
           (GM 126; STV 410 CFU/100 mL). Learn more:
-          https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
+          <a href="https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods" target="_blank" rel="noopener noreferrer">
+            https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
+          </a>
         </p>
 
-        <!-- NEW: status explainer placed under the EPA note -->
+        <!-- Status explainer placed under the EPA note -->
         <div class="status-help" style="margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb">
           <h3 style="margin:0 0 6px 0; font-size:16px;">How status is determined (EBCI standards)</h3>
           <p class="note" style="font-size:13px;">
@@ -95,11 +111,15 @@
       <!-- Latest Results table -->
       <div class="card">
         <h2>Latest Results</h2>
-        <!-- NEW one-line explainer under the title -->
+        <!-- One-line explainer with ≥2-sample GM rule -->
         <p class="note" style="margin-top:-4px;">
-          <b>How status is calculated:</b> The badge uses the site’s <b>30-day geometric mean (GM)</b> together with the
-          <b>latest sample</b>. <i>Advisory</i> shows if <b>GM ≥ 126</b> or <b>latest sample ≥ 410</b>; <i>Caution</i> shows when
-          <b>latest sample is 235–409</b> and <b>GM &lt; 126</b>; otherwise <i>Good</i>.
+          <b>How status is calculated:</b>
+          Status uses the <b>latest sample</b> and, when available, the <b>30-day geometric mean (GM)</b>.
+          The GM rule applies only when there are <b>&ge;2 samples in the last 30 days</b>.
+          <i>Advisory</i> is shown if <b>latest &ge; 410 CFU/100 mL</b> (EPA single-sample
+          <b>Statistical Threshold Value, STV</b>) or (when n&ge;2) <b>GM &ge; 126 CFU/100 mL</b>.
+          <i>Caution</i> is shown when <b>latest is 235–409 CFU/100 mL</b> and (if computed) <b>GM &lt; 126</b>;
+          otherwise <i>Good</i>.
         </p>
         <table id="results" class="table">
           <thead>
@@ -207,9 +227,9 @@
     <!-- ======================= ABOUT & GUIDANCE ======================= -->
     <div class="card" style="margin-top:16px">
       <h2>About the Data & Health Guidance</h2>
-      <p><b>What this dashboard shows</b>: culture-based E. coli measurements (CFU/100 mL; MPN/100 mL for Quanti-Tray/Colilert methods) from EBCI rivers and streams to support safe recreation and public transparency.</p>
+      <p><b>What this dashboard shows</b>: culture-based <i>E. coli</i> measurements (CFU/100 mL; MPN/100 mL for Quanti-Tray/Colilert methods) from EBCI rivers and streams to support safe recreation and public transparency.</p>
       <ul>
-        <li><b>Why E. coli?</b> It is an indicator of fecal contamination. While most strains are harmless, elevated counts correlate with a higher probability of pathogens that can cause gastrointestinal illness.</li>
+        <li><b>Why <i>E. coli</i>?</b> It is an indicator of fecal contamination. While most strains are harmless, elevated counts correlate with a higher probability of pathogens that can cause gastrointestinal illness.</li>
         <li><b>How to interpret results</b> (EPA Recreational Water Quality Criteria, 2012):
           <ul>
             <li><b>Geometric Mean (GM)</b>: target ≤ <b>126 CFU/100 mL</b> computed over a 30-day window (EPA recommends ≥5 samples where feasible).</li>
@@ -237,7 +257,7 @@
           </a>
         </li>
         <li>
-          EPA E. coli parameter factsheet:
+          EPA <i>E. coli</i> parameter factsheet:
           <a href="https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf" target="_blank" rel="noopener noreferrer">
             https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf
           </a>
@@ -268,6 +288,6 @@
   </footer>
 
   <!-- ======================= APP SCRIPT ======================= -->
-  <script src="js/app.js?v=2"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
