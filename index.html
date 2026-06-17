@@ -3,291 +3,427 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>EBCI Water Quality — E. coli (Rivers & Streams)</title>
+  <title>EBCI Water Quality — E. coli Dashboard</title>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="css/styles.css"/>
-
-  <!-- Leaflet -->
+  <link rel="stylesheet" href="css/styles.css?v=12"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- CSV parsing + charts -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-
-  <!-- Site config (paths, constants, etc.) -->
-  <script src="js/config.js"></script>
+  <script src="js/config.js?v=12"></script>
 </head>
 
 <body>
-  <!-- ======================= HEADER ======================= -->
-  <header>
+  <a class="skip-link" href="#mainContent">Skip to dashboard content</a>
+
+  <header class="site-header">
     <div class="header-inner">
-      <div class="header-logos">
+      <div class="header-logos" aria-label="EBCI program logos">
         <img src="assets/natural_resources_logo.png?v=2" alt="EBCI Natural Resources logo" class="logo-img"/>
         <img src="assets/water_logo.png?v=2" alt="EBCI Water Quality logo" class="logo-img"/>
-        <img src="assets/phhs_logo.png?v=2" alt="EBCI PHHS logo" class="logo-img"/>
+        <img src="assets/phhs_logo.png?v=2" alt="EBCI Public Health and Human Services logo" class="logo-img"/>
       </div>
-      <div class="header-title" style="margin-left:10px">
-        <h1>EBCI Water Quality — E. coli (Rivers & Streams)</h1>
-        <small class="muted">
-          Public transparency dashboard • Last updated:
-          <span id="lastUpdated">—</span>
-        </small>
+      <div class="header-title">
+        <p class="eyebrow">Public water quality information</p>
+        <h1>EBCI Water Quality — <i>E. coli</i> in Rivers & Streams</h1>
+        <p class="header-subtitle">Use this page to understand recent recreation conditions at monitored river and stream sites.</p>
       </div>
     </div>
   </header>
 
-  <div class="container">
-    <!-- ======================= KPI STRIP ======================= -->
-    <div class="kpi">
+  <main id="mainContent" class="container">
+    <section class="hero-card" aria-labelledby="snapshotTitle">
+      <div class="hero-copy">
+        <p class="eyebrow dark">Current snapshot</p>
+        <h2 id="snapshotTitle">Can I get in the water today?</h2>
+        <p id="snapshotText" class="hero-text">Loading the latest sample results…</p>
+        <p class="as-of">Most recent sample date: <strong id="lastUpdated">—</strong></p>
+      </div>
+      <div class="snapshot-lists latest-snapshot-lists" aria-label="Current site lists">
+        <div class="snapshot-list-block latest-advisory-block">
+          <div class="snapshot-list-heading"><span class="status-dot" aria-hidden="true"></span><strong>Advisory: latest sample is high</strong></div>
+          <p class="mini-note">Avoid swimming or wading at these sites right now because the newest sample is at or above the single-sample Advisory level.</p>
+          <div id="latestAdvisorySitesList" class="site-chip-list metric-chip-list loading">Loading…</div>
+        </div>
+        <div class="snapshot-list-block gm-advisory-block">
+          <div class="snapshot-list-heading"><span class="status-dot" aria-hidden="true"></span><strong>Advisory: latest sample is lower, but 30-day GM is still high</strong></div>
+          <p class="mini-note">This is a more positive sign, but the site remains Advisory until recent overall conditions improve.</p>
+          <div id="gmAdvisorySitesList" class="site-chip-list metric-chip-list loading">Loading…</div>
+        </div>
+        <div class="snapshot-list-block caution-block caution-wide-block">
+          <div class="snapshot-list-heading"><span class="status-dot" aria-hidden="true"></span><strong>Caution: latest sample is elevated</strong></div>
+          <p class="mini-note">Consider limiting water contact, especially for children and people at higher risk.</p>
+          <div id="cautionSitesList" class="site-chip-list metric-chip-list loading">Loading…</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="kpi" aria-label="Dashboard summary">
       <div class="item" id="kpi-total-box">
         <div class="label" id="kpi-total-label">Sites monitored</div>
         <div class="value" id="kpi-total">—</div>
       </div>
-
       <div class="item" id="kpi-adv-box">
-        <div class="label" id="kpi-adv-label">Advisories</div>
+        <div class="label" id="kpi-adv-label">Sites in Advisory</div>
         <div class="value" id="kpi-adv">—</div>
       </div>
-
       <div class="item" id="kpi-cau-box">
-        <div class="label" id="kpi-cau-label">Cautions</div>
+        <div class="label" id="kpi-cau-label">Sites in Caution</div>
         <div class="value" id="kpi-cau">—</div>
       </div>
-    </div>
+      <div class="item" id="kpi-date-box">
+        <div class="label">Latest sample</div>
+        <div class="value small-value" id="kpi-date">—</div>
+      </div>
+    </section>
 
-    <!-- ======================= LEGEND ======================= -->
-    <div class="legend" style="margin:10px 0 6px 0">
-      <span class="badge good">Good (below EPA STV and GM)</span>
-      <span class="badge caution">Caution (235–409 CFU/100 mL)</span>
-      <span class="badge advisory">Advisory (≥410 CFU/100 mL or GM ≥126)</span>
-    </div>
-
-    <!-- ======================= MAP + LATEST GRID ======================= -->
-    <div class="grid">
-      <!-- Map -->
-      <div class="card">
-        <h2>Map of Sampling Sites</h2>
-        <div id="map" class="map"></div>
-        <p id="map-note" class="note"></p>
-        <p class="note">
-          Status uses EPA’s 2012 Recreational Water Quality Criteria for freshwater <i>E. coli</i>
-          (GM 126; STV 410 CFU/100 mL). Learn more:
-          <a href="https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods" target="_blank" rel="noopener noreferrer">
-            https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
-          </a>
-        </p>
-
-        <!-- Status explainer placed under the EPA note -->
-        <div class="status-help" style="margin-top:10px; padding-top:10px; border-top:1px solid #e5e7eb">
-          <h3 style="margin:0 0 6px 0; font-size:16px;">How status is determined (EBCI standards)</h3>
-          <p class="note" style="font-size:13px;">
-            The Eastern Band of Cherokee Indians’ <b>Water Quality Standards (WQS)</b>—adopted under
-            <b>Cherokee Code Chapter 113E</b>—designate <b>Recreation</b> and <b>Ceremonial Use</b> for many surface waters.
-            For freshwater, the bacteria criteria are:
-            <br/>• <b>Geometric mean (GM)</b> of <i>E. coli</i> over a 30-day period ≤ <b>126 CFU/100 mL</b>, and
-            <br/>• No more than <b>10%</b> of samples in the same 30-day period exceed <b>410 CFU/100 mL</b>—the
-            <b>Statistical Threshold Value (STV)</b>.
-            These values align with the U.S. Environmental Protection Agency’s <b>Recreational Water Quality Criteria (RWQC, 2012)</b>.
-          </p>
-          <ul style="margin:8px 0 0 18px; padding:0; font-size:13px;">
-            <li><b>Good</b> — Meets EBCI WQS for Recreation/Ceremonial Use: the site’s <b>30-day GM &lt; 126</b> and the <b>latest sample &lt; 410</b> CFU/100 mL.</li>
-            <li><b>Caution</b> — <b>Latest sample 235–409</b> CFU/100 mL (approaching the <b>410</b> STV) while the <b>30-day GM remains &lt; 126</b>. Short-lived spikes often follow rain/runoff; consider postponing water contact for 24–48 hours.</li>
-            <li><b>Advisory</b> — Either the <b>latest sample ≥ 410</b> CFU/100 mL or the <b>30-day GM ≥ 126</b>. Avoid swimming/wading where posted; higher-risk groups (young children, older adults, immunocompromised) should take extra care.</li>
-          </ul>
-          <p class="note" style="font-size:12px; margin-top:8px;">
-            <i>Why GM and STV?</i> The <b>GM</b> reflects typical conditions over the last 30 days; the <b>STV (410)</b> controls high single-day results.
-            EPA notes that about five samples in 30 days is ideal where feasible.
-          </p>
-          <p class="note" style="font-size:12px; margin-top:4px;">
-            <b>Monitoring frequency.</b> Sites are sampled <b>regularly during the primary recreation season (approximately April–September)</b>
-            as staffing, safety, and river conditions allow. Additional sampling may occur after rainfall/runoff or when conditions warrant.
-          </p>
+    <section class="card meaning-card" aria-labelledby="meaningTitle">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow dark">Plain-language guide</p>
+          <h2 id="meaningTitle">What do these results mean for me?</h2>
         </div>
       </div>
-
-      <!-- Latest Results table -->
-      <div class="card">
-        <h2>Latest Results</h2>
-        <!-- One-line explainer with ≥2-sample GM rule -->
-        <p class="note" style="margin-top:-4px;">
-          <b>How status is calculated:</b>
-          Status uses the <b>latest sample</b> and, when available, the <b>30-day geometric mean (GM)</b>.
-          The GM rule applies only when there are <b>&ge;2 samples in the last 30 days</b>.
-          <i>Advisory</i> is shown if <b>latest &ge; 410 CFU/100 mL</b> (EPA single-sample
-          <b>Statistical Threshold Value, STV</b>) or (when n&ge;2) <b>GM &ge; 126 CFU/100 mL</b>.
-          <i>Caution</i> is shown when <b>latest is 235–409 CFU/100 mL</b> and (if computed) <b>GM &lt; 126</b>;
-          otherwise <i>Good</i>.
-        </p>
-        <table id="results" class="table">
-          <thead>
-            <tr>
-              <th>Site</th>
-              <th>Waterbody</th>
-              <th>Date</th>
-              <th>E. coli (CFU/100 mL)</th>
-              <th>30-day GM</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <p class="note">
-          “GM” = geometric mean of samples in the last 30 days for the site. Non-detects (“&lt;”) are treated as half the
-          detection limit; “&gt;” are shown as reported.
-        </p>
+      <div class="meaning-grid">
+        <div>
+          <h3>What is <i>E. coli</i>?</h3>
+          <p><i>E. coli</i> is used as an indicator of fecal contamination in freshwater. A higher result does not prove that one specific disease-causing germ is present, but it means the chance of harmful germs may be higher.</p>
+        </div>
+        <div>
+          <h3>What should I do?</h3>
+          <p>Check the site status before swimming, wading, tubing, or letting children play in the water. Avoid swallowing river water, wash hands before eating, and keep open cuts covered.</p>
+        </div>
+        <div>
+          <h3>After rain or muddy water</h3>
+          <p>Bacteria can rise after heavy rain, runoff, or high-flow conditions. Even when a recent sample looks good, consider waiting 24–48 hours after heavy rainfall before water contact.</p>
+        </div>
+        <div>
+          <h3>Who should be extra careful?</h3>
+          <p>Young children, older adults, pregnant people, and people with weakened immune systems may be more likely to get sick from contaminated recreational water.</p>
+        </div>
       </div>
-    </div>
-
-    <!-- ======================= SITE TRENDS ======================= -->
-    <div class="card" style="margin-top:16px">
-      <h2>Site Trends</h2>
-      <div class="filter-row">
-        <label for="siteFilter">Site:</label>
-        <select id="siteFilter"></select>
-      </div>
-      <div id="siteChart" style="height:540px"></div>
-      <p class="note">Choose a specific site or “All sites.” The dashed line indicates the EPA STV (410 CFU/100 mL).</p>
-    </div>
-
-    <!-- ======================= GAME (UNDER Site Trends) ======================= -->
-    <div class="card" id="gameCard" style="margin-top:16px">
-      <h2>Game: River Ranger — E. coli Invaders</h2>
-      <div class="game-grid">
-        <div class="play">
-          <canvas id="ecoliGame" width="780" height="520"></canvas>
-
-          <!-- Start overlay -->
-          <div id="gameStart" class="game-overlay">
-            <div class="panel">
-              <h3>Ready?</h3>
-              <div class="small">
-                Click to play. Use &larr;/&rarr; to move and hold Space to fire. Clear levels quickly for time bonuses.
-              </div>
-              <div id="gameStartBtn" class="playbtn">▶</div>
-            </div>
+      <details class="details-box">
+        <summary>Show the technical thresholds used for the status badges</summary>
+        <div class="threshold-grid">
+          <div class="threshold-card good-border">
+            <h4>Good</h4>
+            <p>Latest sample is below <strong>235 CFU/100 mL</strong> and, when calculated, the 30-day geometric mean is below <strong>126 CFU/100 mL</strong>.</p>
           </div>
-
-          <!-- Game over / victory overlay -->
-          <div id="gameOverlay" class="game-overlay hidden">
-            <div class="panel">
-              <h3 id="gameOverlayTitle">Game Over</h3>
-              <div>Score</div>
-              <div id="gameFinalScore" class="big">0</div>
-              <div id="gameVictoryMsg" class="small" style="display:none">
-                <b>Way to go — you saved the town from the E. coli outbreak!</b>
-              </div>
-              <div class="celebrate" id="gameCelebrate">
-                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="60" cy="46" r="16" fill="#80ED99" stroke="#22577A" stroke-width="3"/>
-                  <rect x="48" y="62" width="24" height="28" rx="6" fill="#57CC99" stroke="#22577A" stroke-width="3"/>
-                </svg>
-                <div class="small">Victory dance!</div>
-              </div>
-              <div class="small" style="margin:6px 0 10px">Enter initials to save your high score.</div>
-              <div class="row">
-                <input id="gameInitials" class="input" maxlength="3" placeholder="ABC" style="width:80px;text-transform:uppercase" />
-                <button id="gameSaveScore" class="btn">Save</button>
-                <button id="gameRestart" class="btn secondary">Play again</button>
-              </div>
-            </div>
+          <div class="threshold-card caution-border">
+            <h4>Caution</h4>
+            <p>Latest sample is <strong>235–409 CFU/100 mL</strong>. This is below the single-sample advisory threshold but elevated enough to use extra caution.</p>
           </div>
-
-          <!-- Toast -->
-          <div id="gameToast" class="toast"></div>
-
-          <!-- HUD -->
-          <div class="hud" style="margin-top:6px">
-            <div><b>Score:</b> <span id="gameScore" class="kv">0</span></div>
-            <div><b>Lives:</b> <span id="gameLives" class="kv">3</span></div>
-            <div><b>Level:</b> <span id="gameLevel" class="kv">1 / 5</span></div>
+          <div class="threshold-card advisory-border">
+            <h4>Advisory</h4>
+            <p>Latest sample is <strong>≥410 CFU/100 mL</strong> or the 30-day geometric mean is <strong>≥126 CFU/100 mL</strong> when there are at least two samples in the last 30 days.</p>
           </div>
         </div>
+      </details>
+      <details class="details-box gm-details">
+        <summary>What is the 30-day geometric mean (GM), and why does it matter?</summary>
+        <div class="gm-explainer">
+          <p>The 30-day geometric mean is a way to summarize recent overall water quality at a site. It is calculated using the site’s recent samples from the last 30 days when there are at least two samples available.</p>
+          <p>It helps avoid overreacting to one unusually low or high sample, but it also helps keep the public protected when several recent samples have been elevated.</p>
+          <p>This means a site can still show <strong>Advisory</strong> even if the newest sample looks lower. That happens when the latest sample has improved, but the recent 30-day pattern is still high enough to remain above the GM Advisory threshold of <strong>126 CFU/100 mL</strong>.</p>
+        </div>
+      </details>
+      <p class="note source-note">Official resources used for this guidance are listed near the bottom of the page.</p>
+    </section>
 
-        <!-- High scores / description -->
-        <div class="side">
-          <p>
-            <b>About the game:</b> A just-for-fun, Space-Invaders-style mini-game where each “invader”
-            represents potential <i>E. coli</i> contamination. Use &larr;/&rarr; to move and hold Space to fire.
-            Clear levels quickly to earn time-based bonus points.
-          </p>
-          <h3>High Scores</h3>
-          <table class="table">
-            <thead><tr><th>#</th><th>Initials</th><th>Score</th><th>Date</th></tr></thead>
-            <tbody id="gameHsBody"></tbody>
+    <section class="card status-strip-card" aria-labelledby="siteStatusTitle">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow dark">Site-by-site summary</p>
+          <h2 id="siteStatusTitle">Latest status by monitored site</h2>
+        </div>
+        <p class="note">Advisory and Caution sites are shown first.</p>
+      </div>
+      <div id="siteStatusCards" class="site-status-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="map-results-stack" aria-label="Sampling map and latest results">
+      <div class="card map-card">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow dark">Map</p>
+            <h2>Sampling Sites</h2>
+          </div>
+          <div class="legend compact" aria-label="Map legend">
+            <span class="badge good">Good</span>
+            <span class="badge caution">Caution</span>
+            <span class="badge advisory">Advisory</span>
+          </div>
+        </div>
+        <div id="map" class="map" role="application" aria-label="Map of monitored sampling sites"></div>
+        <p id="map-note" class="note">Map pins show the latest status for each monitored site. Click a pin for the latest sample date and public guidance.</p>
+      </div>
+
+      <div class="card results-card latest-card">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow dark">Latest samples</p>
+            <h2>Results Table</h2>
+          </div>
+        </div>
+        <p class="note">Sites with Advisory or Caution status are listed first. “GM” means geometric mean, a 30-day measure used to understand recent overall water quality. More detail is available in the plain-language guide above.</p>
+        <div class="table-wrap">
+          <table id="results" class="table">
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>Waterbody</th>
+                <th>Latest Sample</th>
+                <th><i>E. coli</i></th>
+                <th>30-day GM</th>
+                <th>Status</th>
+                <th>Public guidance</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
           </table>
         </div>
+        <p class="note">Results are culture-based measurements reported as CFU/100 mL or MPN/100 mL depending on the lab method. Values with “&lt;” are handled as half the detection limit for calculations.</p>
       </div>
-    </div>
-    <!-- Load game script after the game block -->
-    <script src="js/game.js?v=2"></script>
+    </section>
 
-    <!-- ======================= ABOUT & GUIDANCE ======================= -->
-    <div class="card" style="margin-top:16px">
-      <h2>About the Data & Health Guidance</h2>
-      <p><b>What this dashboard shows</b>: culture-based <i>E. coli</i> measurements (CFU/100 mL; MPN/100 mL for Quanti-Tray/Colilert methods) from EBCI rivers and streams to support safe recreation and public transparency.</p>
-      <ul>
-        <li><b>Why <i>E. coli</i>?</b> It is an indicator of fecal contamination. While most strains are harmless, elevated counts correlate with a higher probability of pathogens that can cause gastrointestinal illness.</li>
-        <li><b>How to interpret results</b> (EPA Recreational Water Quality Criteria, 2012):
-          <ul>
-            <li><b>Geometric Mean (GM)</b>: target ≤ <b>126 CFU/100 mL</b> computed over a 30-day window (EPA recommends ≥5 samples where feasible).</li>
-            <li><b>Statistical Threshold Value (STV)</b>: single-sample level <b>410 CFU/100 mL</b>; no more than <b>10%</b> of samples should exceed the STV over the same assessment window.</li>
-            <li><b>EBCI status badges</b>: Good (below GM & STV), Caution (235–409), Advisory (≥410 or GM ≥126).</li>
-          </ul>
-        </li>
-        <li><b>When levels are high</b>: After rainfall or runoff events, bacteria often spike for 24–48 hours. Consider postponing swimming/wading, avoid ingesting water, and wash hands before eating.</li>
-        <li><b>Higher-risk groups</b>: young children, older adults, pregnant people, and those who are immunocompromised should take extra care.</li>
-        <li><b>Data limitations</b>: Single samples are snapshots; conditions change rapidly with weather and flow. The GM smooths noise but requires multiple samples.</li>
-      </ul>
-
-      <p><b>Official resources</b>:</p>
-      <ul class="resource-list">
-        <li>
-          Cherokee Code, Chapter 113E – Water Quality:
-          <a href="https://library.municode.com/tribes_and_tribal_nations/eastern_band_of_cherokee_indians/codes/code_of_ordinances?nodeId=THCHCO_CH113EWAQUCOTRWA" target="_blank" rel="noopener noreferrer">
-            https://library.municode.com/tribes_and_tribal_nations/eastern_band_of_cherokee_indians/codes/code_of_ordinances?nodeId=THCHCO_CH113EWAQUCOTRWA
-          </a>
-        </li>
-        <li>
-          EPA Recreational Water Quality Criteria (2012):
-          <a href="https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods" target="_blank" rel="noopener noreferrer">
-            https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods
-          </a>
-        </li>
-        <li>
-          EPA <i>E. coli</i> parameter factsheet:
-          <a href="https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf" target="_blank" rel="noopener noreferrer">
-            https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- ======================= FOOTER ======================= -->
-  <footer>
-    <div class="container">
-      <h3>Contact — EBCI Water Quality Team</h3>
-      <address>
+    <section class="card" style="margin-top:16px">
+      <div class="section-heading-row">
         <div>
+          <p class="eyebrow dark">Trends</p>
+          <h2>Site Trends Over Time</h2>
+        </div>
+        <div class="filter-row">
+          <label for="siteFilter">Choose view or site:</label>
+          <select id="siteFilter"></select>
+        </div>
+      </div>
+      <div id="chartStatusNote" class="explain-callout chart-callout">
+        <strong>How to read this section:</strong> the default view shows latest sample results for all sites. Use the dropdown to switch to the 30-day GM by site view or to select a specific site trend.
+      </div>
+      <div class="trend-chart-stack">
+        <div class="trend-chart-panel">
+          <h3 id="latestChartTitle">Latest sample results</h3>
+          <div id="latestSampleChart" class="chart-box"></div>
+        </div>
+        <div class="trend-chart-panel">
+          <h3 id="gmChartTitle">30-day GM results</h3>
+          <div id="gmTrendChart" class="chart-box gm-chart-box"></div>
+        </div>
+      </div>
+      <p class="note">The default all-sites view shows the newest sample at each site. The dropdown also includes an all-sites 30-day GM view, which helps explain sites that remain Advisory because recent overall conditions are still elevated. Conditions can change quickly after rainfall or runoff.</p>
+    </section>
+
+    <section class="card guidance-card" style="margin-top:16px" aria-labelledby="healthGuidanceTitle">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow dark">Health guidance</p>
+          <h2 id="healthGuidanceTitle">Simple steps to reduce risk</h2>
+        </div>
+      </div>
+      <div class="guidance-grid">
+        <div class="guidance-item"><strong>Check status first.</strong><br/>Use this dashboard and any posted signs before getting in the water.</div>
+        <div class="guidance-item"><strong>Do not swallow river water.</strong><br/>Many recreational water illnesses happen when contaminated water is swallowed.</div>
+        <div class="guidance-item"><strong>Wait after heavy rain.</strong><br/>Runoff can carry bacteria into streams. Waiting 24–48 hours is a practical precaution.</div>
+        <div class="guidance-item"><strong>Wash hands.</strong><br/>Wash or sanitize hands before eating, especially after wading, fishing, or helping children.</div>
+        <div class="guidance-item"><strong>Protect cuts and scrapes.</strong><br/>Cover open wounds and avoid water contact if a wound cannot be covered well.</div>
+        <div class="guidance-item"><strong>Stay home if sick.</strong><br/>Do not swim or play in water if you have diarrhea.</div>
+      </div>
+    </section>
+
+    <section class="card faq-card" style="margin-top:16px" aria-labelledby="faqTitle">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow dark">FAQs</p>
+          <h2 id="faqTitle">Fishing, boating, wading, and trout</h2>
+        </div>
+      </div>
+      <div class="faq-grid">
+        <details class="details-box faq-item">
+          <summary>Can I fish during an Advisory?</summary>
+          <p>Fishing from the bank is usually lower risk than swimming because you are not intentionally putting your whole body in the water. Avoid getting river water in your mouth, wash hands before eating, and use extra caution if you have cuts or scrapes.</p>
+        </details>
+        <details class="details-box faq-item">
+          <summary>What about fishing with waders?</summary>
+          <p>Waders reduce skin contact, but they do not remove all risk. Avoid wading at Advisory sites when possible, especially if water may enter the waders, if you have open wounds, or if children are involved. Wash hands and clean gear afterward.</p>
+        </details>
+        <details class="details-box faq-item">
+          <summary>Is boating, kayaking, or canoeing safe?</summary>
+          <p>Boating is generally less direct contact than swimming, but splashes and accidental falls can still expose people to water. During Advisory conditions, avoid swallowing water, keep hands clean before eating, and consider postponing activities where falling in is likely.</p>
+        </details>
+        <details class="details-box faq-item">
+          <summary>Do trout carry <i>E. coli</i>?</summary>
+          <p><i>E. coli</i> is mainly used here as a sign of fecal contamination in the water, not as a test of whether trout themselves are infected. Fish can still be exposed to contaminated water on their skin, gills, or during cleaning, so handle fish carefully and wash hands and surfaces.</p>
+        </details>
+        <details class="details-box faq-item">
+          <summary>Can I eat fish caught near an Advisory site?</summary>
+          <p>Do not use river water to rinse fish, hands, or utensils. Keep raw fish separate from ready-to-eat foods and cook fish thoroughly. General food safety guidance recommends cooking fish to <strong>145°F</strong> or until the flesh is opaque and separates easily with a fork.</p>
+        </details>
+        <details class="details-box faq-item">
+          <summary>Should I clean my gear afterward?</summary>
+          <p>Yes. Rinse and dry waders, boots, boats, paddles, and fishing gear after use. Wash hands with soap and clean water before eating or touching your face, especially after contact with river water, mud, fish, or gear.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="card about-card" style="margin-top:16px" aria-labelledby="aboutTitle">
+      <h2 id="aboutTitle">About the Data & Official Resources</h2>
+      <p><strong>What this dashboard shows:</strong> Recent <i>E. coli</i> measurements from EBCI rivers and streams to support safe recreation and public transparency. Samples are snapshots in time; they do not guarantee conditions at every location or time of day.</p>
+      <p><strong>How status is calculated:</strong> EBCI uses EPA’s 2012 Recreational Water Quality Criteria framework for freshwater <i>E. coli</i>. The dashboard applies the single-sample Statistical Threshold Value of <strong>410 CFU/100 mL</strong> and the 30-day geometric mean value of <strong>126 CFU/100 mL</strong> when there are at least two samples in the last 30 days.</p>
+      <p><strong>Monitoring frequency:</strong> Sites are sampled regularly during the primary recreation season, as staffing, safety, weather, and river conditions allow. Additional sampling may occur when conditions warrant.</p>
+      <ul class="resource-list">
+        <li>EPA Recreational Water Quality Criteria and Methods: https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods</li>
+        <li>EPA 2012 Recreational Water Quality Criteria: https://www.epa.gov/sites/default/files/2015-10/documents/rwqc2012.pdf</li>
+        <li>EPA <i>E. coli</i> parameter factsheet: https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf</li>
+        <li>CDC Healthy Swimming prevention guidance: https://www.cdc.gov/healthy-swimming/prevention/index.html</li>
+        <li>CDC diarrheal illness prevention for swimming: https://www.cdc.gov/healthy-swimming/prevention/preventing-diarrheal-illnesses.html</li>
+        <li>FoodSafety.gov safe minimum internal temperatures: https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures</li>
+        <li>Cherokee Code Chapter 113E Water Quality: https://library.municode.com/tribes_and_tribal_nations/eastern_band_of_cherokee_indians/codes/code_of_ordinances?nodeId=THCHCO_CH113EWAQUCOTRWA</li>
+      </ul>
+    </section>
+
+
+    <section class="card technical-card" style="margin-top:16px" aria-labelledby="technicalTitle">
+      <details class="technical-details">
+        <summary>
+          <span class="summary-title" id="technicalTitle">Technical details: standards, calculations, monitoring, and data notes</span>
+          <span class="summary-helper">Click to expand the detailed methods and official criteria used for this dashboard.</span>
+        </summary>
+
+        <div class="technical-content">
+          <div class="technical-intro">
+            <p>This section provides the more technical explanation for how the dashboard status categories are assigned. It is intended for staff, partners, and community members who want the full criteria and data notes behind the plain-language status badges.</p>
+          </div>
+
+          <div class="technical-grid">
+            <div class="tech-subsection">
+              <h3>Regulatory and criteria basis</h3>
+              <p>Status uses EPA’s 2012 Recreational Water Quality Criteria framework for freshwater <i>E. coli</i>, including the <strong>30-day geometric mean (GM) value of 126 CFU/100 mL</strong> and the <strong>single-sample Statistical Threshold Value (STV) of 410 CFU/100 mL</strong>.</p>
+              <p>The Eastern Band of Cherokee Indians’ Water Quality Standards, adopted under <strong>Cherokee Code Chapter 113E</strong>, designate <strong>Recreation</strong> and <strong>Ceremonial Use</strong> for many surface waters. For freshwater bacteria criteria, the standards include:</p>
+              <ul>
+                <li><strong>Geometric mean:</strong> <i>E. coli</i> over a 30-day period should be ≤ <strong>126 CFU/100 mL</strong>.</li>
+                <li><strong>Statistical Threshold Value:</strong> no more than <strong>10%</strong> of samples in the same 30-day period should exceed <strong>410 CFU/100 mL</strong>.</li>
+              </ul>
+              <p>These values align with EPA’s 2012 Recreational Water Quality Criteria.</p>
+            </div>
+
+            <div class="tech-subsection">
+              <h3>Dashboard status calculation</h3>
+              <p>The dashboard uses the <strong>latest sample</strong> and, when available, the <strong>30-day GM</strong> for each site.</p>
+              <ul>
+                <li><strong>Good:</strong> latest sample is below the Caution band and the 30-day GM, when calculated, is below <strong>126 CFU/100 mL</strong>.</li>
+                <li><strong>Caution:</strong> latest sample is <strong>235–409 CFU/100 mL</strong> while the site does not meet Advisory criteria. This is a public-facing caution band used to flag elevated results that are approaching the STV.</li>
+                <li><strong>Advisory:</strong> latest sample is ≥ <strong>410 CFU/100 mL</strong> or the 30-day GM is ≥ <strong>126 CFU/100 mL</strong> when there are enough recent samples to calculate it.</li>
+              </ul>
+              <p>The GM rule is applied only when there are <strong>at least two samples in the last 30 days</strong>. EPA notes that about <strong>five samples in 30 days</strong> is ideal where feasible, so GM results based on fewer samples should be interpreted with that limitation in mind.</p>
+            </div>
+
+            <div class="tech-subsection">
+              <h3>Why GM and STV are both shown</h3>
+              <p>The <strong>STV</strong> helps identify high single-sample results that may represent a current or recent spike in bacteria. The <strong>30-day GM</strong> reflects recent overall water quality and helps avoid making decisions based only on one unusually high or low sample.</p>
+              <p>This is why a site may remain <strong>Advisory</strong> even when the latest sample appears lower: recent results may still keep the 30-day GM above the Advisory threshold. In that situation, the newest sample may be a positive sign, but the site remains in Advisory until the recent overall pattern improves.</p>
+            </div>
+
+            <div class="tech-subsection">
+              <h3>What the measurements mean</h3>
+              <p>This dashboard displays culture-based <i>E. coli</i> measurements from EBCI rivers and streams to support safe recreation and public transparency. Results are shown as <strong>CFU/100 mL</strong> or, depending on the laboratory method, <strong>MPN/100 mL</strong> for methods such as Quanti-Tray/Colilert.</p>
+              <p><i>E. coli</i> is used as an indicator of fecal contamination. Most strains of <i>E. coli</i> are not harmful, but elevated results can indicate a higher probability that other disease-causing organisms may be present.</p>
+            </div>
+
+            <div class="tech-subsection">
+              <h3>Data handling notes</h3>
+              <ul>
+                <li>Single samples are snapshots in time; conditions can change quickly with rainfall, runoff, sunlight, temperature, and streamflow.</li>
+                <li>Values reported with “&lt;” are treated as half the detection limit for GM calculations.</li>
+                <li>Values reported with “&gt;” are displayed as reported and should be interpreted as exceeding the stated value.</li>
+                <li>The 30-day GM is calculated separately for each site using recent positive numeric values from that site.</li>
+                <li>Sites without enough recent samples may not have a GM-based status applied.</li>
+              </ul>
+            </div>
+
+            <div class="tech-subsection">
+              <h3>Monitoring frequency and limitations</h3>
+              <p>Sites are sampled regularly during the primary recreation season, approximately <strong>April–September</strong>, as staffing, safety, weather, and river conditions allow. Additional sampling may occur after rainfall/runoff or when conditions warrant.</p>
+              <p>Sampling results apply to the site and time collected. They do not guarantee conditions at every nearby swimming, fishing, boating, or ceremonial-use location. When water is muddy, high, or fast-moving, or after heavy rain, water-contact risk may be higher even before new sample results are available.</p>
+            </div>
+          </div>
+
+          <div class="technical-resources">
+            <h3>Official resources</h3>
+            <ul class="resource-list">
+              <li>Cherokee Code Chapter 113E – Water Quality: https://library.municode.com/tribes_and_tribal_nations/eastern_band_of_cherokee_indians/codes/code_of_ordinances?nodeId=THCHCO_CH113EWAQUCOTRWA</li>
+              <li>EPA Recreational Water Quality Criteria and Methods: https://www.epa.gov/wqc/recreational-water-quality-criteria-and-methods</li>
+              <li>EPA 2012 Recreational Water Quality Criteria: https://www.epa.gov/sites/default/files/2015-10/documents/rwqc2012.pdf</li>
+              <li>EPA <i>E. coli</i> parameter factsheet: https://www.epa.gov/system/files/documents/2021-07/parameter-factsheet_e.-coli.pdf</li>
+              <li>CDC Healthy Swimming prevention guidance: https://www.cdc.gov/healthy-swimming/prevention/index.html</li>
+              <li>CDC diarrheal illness prevention for swimming: https://www.cdc.gov/healthy-swimming/prevention/preventing-diarrheal-illnesses.html</li>
+              <li>FoodSafety.gov safe minimum internal temperatures: https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="card" id="gameCard" style="margin-top:16px">
+      <details>
+        <summary class="game-summary">Optional: River Ranger — <i>E. coli</i> Invaders game</summary>
+        <div class="game-grid single-game">
+          <div class="play">
+            <canvas id="ecoliGame" width="780" height="520"></canvas>
+            <div id="gameStart" class="game-overlay">
+              <div class="panel">
+                <h3>Ready?</h3>
+                <div class="small">Click to play. Use &larr;/&rarr; to move and hold Space to fire. Clear levels quickly for time bonuses.</div>
+                <div id="gameStartBtn" class="playbtn">▶</div>
+              </div>
+            </div>
+            <div id="gameOverlay" class="game-overlay hidden">
+              <div class="panel">
+                <h3 id="gameOverlayTitle">Game Over</h3>
+                <div>Score</div>
+                <div id="gameFinalScore" class="big">0</div>
+                <div id="gameVictoryMsg" class="small" style="display:none"><b>Way to go — you saved the town from the E. coli outbreak!</b></div>
+                <div class="celebrate" id="gameCelebrate">
+                  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="46" r="16" fill="#80ED99" stroke="#22577A" stroke-width="3"/>
+                    <rect x="48" y="62" width="24" height="28" rx="6" fill="#57CC99" stroke="#22577A" stroke-width="3"/>
+                  </svg>
+                  <div class="small">Victory dance!</div>
+                </div>
+                <div class="small" style="margin:6px 0 10px">Play again or close the game section when finished.</div>
+                <div class="row">
+                  <button id="gameRestart" class="btn secondary">Play again</button>
+                </div>
+              </div>
+            </div>
+            <div id="gameToast" class="toast"></div>
+            <div class="hud" style="margin-top:6px">
+              <div><b>Score:</b> <span id="gameScore" class="kv">0</span></div>
+              <div><b>Lives:</b> <span id="gameLives" class="kv">3</span></div>
+              <div><b>Level:</b> <span id="gameLevel" class="kv">1 / 5</span></div>
+            </div>
+          </div>
+          <p class="note game-note"><b>About the game:</b> A just-for-fun mini-game that reinforces the idea of preventing contamination and protecting rivers.</p>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h3>Contact — EBCI Water Quality Team</h3>
+        <address>
           <strong>Rainee Tetreault</strong><br>
-          Email: <a href="mailto:raintetr@ebci-nsn.gov">raintetr@ebci-nsn.gov</a>
-          &nbsp;•&nbsp;
-          Phone: <a href="tel:+18283596771">828-359-6771</a>
-        </div>
-        <div style="margin-top:6px">
+          Email: <a href="mailto:raintetr@ebci-nsn.gov">raintetr@ebci-nsn.gov</a> &nbsp;•&nbsp; Phone: <a href="tel:+18283596771">828-359-6771</a><br><br>
           <strong>Derek Tahquette</strong><br>
-          Email: <a href="mailto:johntahq@ebci-nsn.gov">johntahq@ebci-nsn.gov</a>
-          &nbsp;•&nbsp;
-          Phone: <a href="tel:+18283596141">828-359-6141</a>
-        </div>
-      </address>
+          Email: <a href="mailto:johntahq@ebci-nsn.gov">johntahq@ebci-nsn.gov</a> &nbsp;•&nbsp; Phone: <a href="tel:+18283596141">828-359-6141</a>
+        </address>
+      </div>
+      <p class="note footer-note">This dashboard is for public information and recreation planning. Follow posted advisories and local instructions at access points.</p>
     </div>
   </footer>
 
-  <!-- ======================= APP SCRIPT ======================= -->
-  <script src="js/app.js?v=3"></script>
+  <script src="js/game.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
 </body>
 </html>

@@ -1,10 +1,11 @@
 // River Ranger — E. coli Invaders (dashboard embed) v6.2
-// - Click-to-start, high-score table, time bonus per level
+// - Click-to-start, time bonus per level
 // - Level 5 (purple boss): faster fire cadence + 30 HP, double big shots
 // - Shooter limiting: only 1–3 invaders fire per volley (grid/random), up to 2 in boss trio
 
 (function(){
   const canvas = document.getElementById('ecoliGame');
+  if(!canvas) return;
   const ctx = canvas.getContext('2d');
 
   const startOverlay = document.getElementById('gameStart');
@@ -16,39 +17,16 @@
   const victoryMsg = document.getElementById('gameVictoryMsg');
   const celebrate = document.getElementById('gameCelebrate');
 
-  const initialsInput = document.getElementById('gameInitials');
-  const saveScoreBtn = document.getElementById('gameSaveScore');
   const restartBtn = document.getElementById('gameRestart');
   const toast = document.getElementById('gameToast');
 
   const hud = {
     score: document.getElementById('gameScore'),
     lives: document.getElementById('gameLives'),
-    level: document.getElementById('gameLevel'),
-    hsBody: document.getElementById('gameHsBody')
+    level: document.getElementById('gameLevel')
   };
 
   const W = canvas.width, H = canvas.height;
-
-  function loadHighScores(){ try{ return JSON.parse(localStorage.getItem('ecoli_invaders_highscores')||'[]'); }catch(e){ return []; } }
-  function saveHighScores(list){ localStorage.setItem('ecoli_invaders_highscores', JSON.stringify(list)); }
-  function addHighScore(initials, score){
-    const list = loadHighScores();
-    list.push({ initials, score, when: new Date().toISOString().slice(0,10) });
-    list.sort((a,b)=>b.score - a.score);
-    saveHighScores(list.slice(0,10));
-    renderHighScores();
-  }
-  function renderHighScores(){
-    const list = loadHighScores();
-    hud.hsBody.innerHTML = '';
-    list.forEach((r,i)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${i+1}</td><td>${r.initials}</td><td>${r.score}</td><td>${r.when}</td>`;
-      hud.hsBody.appendChild(tr);
-    });
-  }
-  renderHighScores();
 
   const MAX_LEVEL = 5;
   const state = {
@@ -149,19 +127,12 @@
     victoryMsg.style.display = victory ? 'block' : 'none';
     celebrate.classList.toggle('show', victory);
     overlay.classList.remove('hidden');
-    initialsInput.value = '';
-    initialsInput.focus();
   }
   function hideOverlay(){ overlay.classList.add('hidden'); }
   function showStart(){ startOverlay.classList.remove('hidden'); state.running=false; }
   function hideStart(){ startOverlay.classList.add('hidden'); }
 
   startBtn.addEventListener('click', ()=>{ hideStart(); state.score=0; state.lives=3; resetLevel(1); });
-  saveScoreBtn.addEventListener('click', ()=>{
-    const txt = (initialsInput.value || '').toUpperCase().replace(/[^A-Z]/g,'').slice(0,3) || 'EBC';
-    addHighScore(txt, state.score);
-    showToast('Saved!');
-  });
   restartBtn.addEventListener('click', ()=>{
     overlay.classList.add('hidden');
     state.score=0; state.lives=3; resetLevel(1);
